@@ -11,13 +11,32 @@ from app.api.schemas import TokenRefreshRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.schemas import UserUpdate, ChangePasswordRequest
 from app.core.security import verify_password, hash_password
+from pydantic_extra_types.phone_numbers import PhoneNumber
+import phonenumbers
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserOut)
 async def read_current_user(current_user: User = Depends(get_current_user)):
-    return current_user
+    from app.api.schemas import UserOut
+    import phonenumbers
+    from pydantic_extra_types.phone_numbers import PhoneNumber
+    # Convert phone string to E.164 format for PhoneNumber
+    try:
+        parsed = phonenumbers.parse(current_user.phone, "IR")
+        e164 = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+        phone = PhoneNumber(e164)
+    except Exception:
+        phone = PhoneNumber("+989000000000")  # fallback to a default valid phone number
+    return UserOut(
+        id=current_user.id,
+        email=current_user.email,
+        fname=current_user.fname,
+        lname=current_user.lname,
+        phone=phone,
+        is_active=current_user.is_active
+    )
 
 
 @router.post("/logout", status_code=204)
