@@ -38,12 +38,14 @@ This project is a robust, production-ready authentication and user management sy
 ## Getting Started
 
 ### 1. Clone the Repository
+
 ```sh
-git clone <your-repo-url>
+git clone https://github.com/payammirzaei/fastapi_auth.git
 cd fastapi_auth
 ```
 
 ### 2. Create and Activate a Virtual Environment
+
 ```sh
 python -m venv venv
 # On Linux/macOS:
@@ -53,11 +55,13 @@ venv\Scripts\activate
 ```
 
 ### 3. Install Dependencies
+
 ```sh
 pip install -r requirements.txt
 ```
 
 ### 4. Configure Your Environment
+
 Create a `.env` file in the project root with the following content:
 
 ```ini
@@ -87,17 +91,21 @@ FRONTEND_URL=http://localhost:8000
 > **Important:** Never commit your real `.env` file or secrets to version control.
 
 ### 5. Run Database Migrations
+
 If you use Alembic, run:
+
 ```sh
 alembic upgrade head
 ```
 
 ### 6. Start the Application
+
 ```sh
 uvicorn app.main:app --reload
 ```
 
 ### 7. Open the API Docs
+
 Visit [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive Swagger UI.
 
 ---
@@ -105,22 +113,27 @@ Visit [http://localhost:8000/docs](http://localhost:8000/docs) for the interacti
 ## Usage Highlights
 
 - **Registration:**
+
   - Users register with their email and receive a verification link.
   - Accounts are inactive until verified via the emailed link.
 
 - **Login:**
+
   - Only verified users can log in.
   - Returns both access and refresh tokens.
 
 - **Refresh Token:**
+
   - Use `/auth/refresh` to obtain a new access token with a valid refresh token.
   - Refresh tokens are rotated and revoked for security.
 
 - **Password Recovery:**
+
   - Use `/auth/forgot-password` to request a password reset link.
   - Use `/auth/reset-password` to set a new password with the emailed token.
 
 - **Profile Management:**
+
   - Use `/users/me` to view your profile.
   - Use `PATCH /users/me` to update your name, phone, or email.
   - Use `/users/change-password` to change your password (requires current password).
@@ -168,4 +181,4 @@ Visit [http://localhost:8000/docs](http://localhost:8000/docs) for the interacti
 
 ## License
 
-MIT 
+MIT
