@@ -2,14 +2,14 @@
 # app/api/schemas.py
 
 from pydantic import BaseModel, EmailStr
-
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     fname:str
     lname:str
-    phone:str
+    phone:PhoneNumber
 
 
 class UserOut(BaseModel):
@@ -17,7 +17,7 @@ class UserOut(BaseModel):
     email: EmailStr
     fname:str
     lname:str
-    phone:str
+    phone:PhoneNumber
     is_active: bool
 
     class Config:
@@ -26,4 +26,9 @@ class UserOut(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
+
+
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str

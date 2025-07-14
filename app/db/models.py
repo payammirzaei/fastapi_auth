@@ -2,6 +2,7 @@
 from datetime import datetime                   # ← add import
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Boolean, Integer, DateTime, func
+from sqlalchemy import ForeignKey
 
 
 class Base(DeclarativeBase):
@@ -22,3 +23,11 @@ class User(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
