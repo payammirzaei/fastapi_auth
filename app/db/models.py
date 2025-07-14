@@ -19,6 +19,7 @@ class User(Base):
     lname: Mapped[str] = mapped_column(String, nullable=False)
     phone: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(        # ← add explicit type
         DateTime(timezone=True),
         server_default=func.now(),

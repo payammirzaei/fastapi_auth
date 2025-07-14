@@ -80,6 +80,22 @@ def verify_password_reset_token(token: str, max_age: int = RESET_PASSWORD_EXPIRA
     except (BadSignature, SignatureExpired):
         return None
 
+EMAIL_VERIFICATION_SECRET = settings.jwt_secret  # Or a separate secret if you want
+EMAIL_VERIFICATION_SALT = "verify-email"
+EMAIL_VERIFICATION_EXPIRATION = 3600 * 24  # 24 hours
+
+def generate_email_verification_token(email: str) -> str:
+    serializer = URLSafeTimedSerializer(EMAIL_VERIFICATION_SECRET)
+    return serializer.dumps(email, salt=EMAIL_VERIFICATION_SALT)
+
+def verify_email_verification_token(token: str, max_age: int = EMAIL_VERIFICATION_EXPIRATION) -> str | None:
+    serializer = URLSafeTimedSerializer(EMAIL_VERIFICATION_SECRET)
+    try:
+        email = serializer.loads(token, salt=EMAIL_VERIFICATION_SALT, max_age=max_age)
+        return email
+    except (BadSignature, SignatureExpired):
+        return None
+
 def send_email(to_email: str, subject: str, body: str):
     # This is a simple SMTP example. In production, use a robust email library/service.
     msg = MIMEText(body, "html")

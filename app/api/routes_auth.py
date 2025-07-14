@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.schemas import UserCreate, Token, TokenRefreshRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.db.crud_user import get_user_by_email, create_user, create_refresh_token, revoke_refresh_token
 from app.db.session import get_session
-from app.core.security import verify_password, create_access_token, validate_refresh_token, issue_access_token_from_refresh, generate_password_reset_token, verify_password_reset_token, send_email, hash_password
+from app.core.security import verify_password, create_access_token, validate_refresh_token, issue_access_token_from_refresh, generate_password_reset_token, verify_password_reset_token, send_email, hash_password, generate_email_verification_token, verify_email_verification_token
 from app.core.config import settings
 
 
@@ -20,10 +20,40 @@ async def register(user_in: UserCreate, session: AsyncSession = Depends(get_sess
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    # Set is_verified to False on registration
     user = await create_user(session, email=user_in.email, password=user_in.password, fname=user_in.fname, lname=user_in.lname, phone=user_in.phone)
-    token = create_access_token(data={"sub": user.email})
+    user.is_verified = False
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    # Generate and send verification email
+    token = generate_email_verification_token(user.email)
+    verify_link = f"{settings.frontend_url}/auth/verify-email?token={token}"
+    send_email(
+        to_email=user.email,
+        subject="Verify your email",
+        body=f"<p>Click <a href='{verify_link}'>here</a> to verify your email address. This link will expire in 24 hours.</p>"
+    )
+
+    # Optionally, do not return tokens until verified, or return with a warning
+    access_token = create_access_token(data={"sub": user.email})
     refresh_token_obj = await create_refresh_token(session, user_id=user.id)
-    return {"access_token": token, "refresh_token": refresh_token_obj.token, "token_type": "bearer"}
+    return {"access_token": access_token, "refresh_token": refresh_token_obj.token, "token_type": "bearer"}
+
+
+@router.get("/verify-email")
+async def verify_email(token: str, session: AsyncSession = Depends(get_session)):
+    email = verify_email_verification_token(token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    user = await get_user_by_email(session, email)
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    user.is_verified = True
+    session.add(user)
+    await session.commit()
+    return {"detail": "Email verified successfully. You can now log in."}
 
 
 @router.post("/login", response_model=Token)
@@ -34,7 +64,8 @@ async def login(
     user = await get_user_by_email(session, form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_pw):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-
+    if not user.is_verified:
+        raise HTTPException(status_code=403, detail="Please verify your email before logging in.")
     token = create_access_token(data={"sub": user.email})
     refresh_token_obj = await create_refresh_token(session, user_id=user.id)
     return {"access_token": token, "refresh_token": refresh_token_obj.token, "token_type": "bearer"}
@@ -61,7 +92,7 @@ async def forgot_password(request: ForgotPasswordRequest, session: AsyncSession 
     user = await get_user_by_email(session, request.email)
     if user:
         token = generate_password_reset_token(user.email)
-        reset_link = f"http://localhost:8000/reset-password?token={token}"
+        reset_link = f"{settings.frontend_url}/reset-password?token={token}"
         send_email(
             to_email=user.email,
             subject="Password Reset Request",
