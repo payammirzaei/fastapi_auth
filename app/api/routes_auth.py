@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.schemas import UserCreate, Token, TokenRefreshRequest
+from app.api.schemas import UserCreate, Token, TokenRefreshRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.db.crud_user import get_user_by_email, create_user, create_refresh_token, revoke_refresh_token
 from app.db.session import get_session
-from app.core.security import verify_password, create_access_token, validate_refresh_token, issue_access_token_from_refresh
+from app.core.security import verify_password, create_access_token, validate_refresh_token, issue_access_token_from_refresh, generate_password_reset_token, verify_password_reset_token, send_email, hash_password
 from app.core.config import settings
 
 
@@ -54,3 +54,34 @@ async def refresh_token(request: TokenRefreshRequest, session: AsyncSession = De
     # Issue a new refresh token
     new_refresh_token_obj = await create_refresh_token(session, user_id=user_id)
     return {"access_token": new_access_token, "refresh_token": new_refresh_token_obj.token, "token_type": "bearer"}
+
+
+@router.post("/forgot-password", status_code=204)
+async def forgot_password(request: ForgotPasswordRequest, session: AsyncSession = Depends(get_session)):
+    user = await get_user_by_email(session, request.email)
+    if user:
+        token = generate_password_reset_token(user.email)
+        reset_link = f"http://localhost:8000/reset-password?token={token}"
+        send_email(
+            to_email=user.email,
+            subject="Password Reset Request",
+            body=f"<p>Click <a href='{reset_link}'>here</a> to reset your password. This link will expire in 1 hour.</p>"
+        )
+    # Always return 204 to prevent email enumeration
+    return None
+
+@router.post("/reset-password", status_code=204)
+async def reset_password(request: ResetPasswordRequest, session: AsyncSession = Depends(get_session)):
+    email = verify_password_reset_token(request.token)
+    if not email:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    from app.db.crud_user import get_user_by_email
+    user = await get_user_by_email(session, email)
+    if not user:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="User not found")
+    user.hashed_pw = hash_password(request.new_password)
+    session.add(user)
+    await session.commit()
+    return None

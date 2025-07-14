@@ -32,3 +32,21 @@ class Token(BaseModel):
 
 class TokenRefreshRequest(BaseModel):
     refresh_token: str
+
+
+class UserUpdate(BaseModel):
+    fname: str | None = None
+    lname: str | None = None
+    phone: PhoneNumber | None = None
+    email: EmailStr | None = None
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

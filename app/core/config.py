@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     postgres_db: str
     postgres_server: str
     postgres_port: int
+    email_host: str
+    email_port: int
+    email_user: str
+    email_password: str
+    email_from: str
+    email_from_name: str
 
     model_config = SettingsConfigDict(env_file=".env")
 

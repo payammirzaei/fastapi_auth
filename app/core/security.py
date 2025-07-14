@@ -9,6 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.models import User
 
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+import smtplib
+from email.mime.text import MIMEText
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
@@ -59,3 +63,30 @@ async def issue_access_token_from_refresh(session: AsyncSession, refresh_token: 
     if not user:
         return None
     return create_access_token(data={"sub": user.email})
+
+RESET_PASSWORD_SECRET = settings.jwt_secret  # Or a separate secret if you want
+RESET_PASSWORD_SALT = "reset-password"
+RESET_PASSWORD_EXPIRATION = 3600  # 1 hour
+
+def generate_password_reset_token(email: str) -> str:
+    serializer = URLSafeTimedSerializer(RESET_PASSWORD_SECRET)
+    return serializer.dumps(email, salt=RESET_PASSWORD_SALT)
+
+def verify_password_reset_token(token: str, max_age: int = RESET_PASSWORD_EXPIRATION) -> str | None:
+    serializer = URLSafeTimedSerializer(RESET_PASSWORD_SECRET)
+    try:
+        email = serializer.loads(token, salt=RESET_PASSWORD_SALT, max_age=max_age)
+        return email
+    except (BadSignature, SignatureExpired):
+        return None
+
+def send_email(to_email: str, subject: str, body: str):
+    # This is a simple SMTP example. In production, use a robust email library/service.
+    msg = MIMEText(body, "html")
+    msg["Subject"] = subject
+    msg["From"] = f'{settings.email_from_name} <{settings.email_from}>'
+    msg["To"] = to_email
+    with smtplib.SMTP(settings.email_host, settings.email_port) as server:
+        server.starttls()
+        server.login(settings.email_user, settings.email_password)
+        server.sendmail(settings.email_from, [to_email], msg.as_string())
