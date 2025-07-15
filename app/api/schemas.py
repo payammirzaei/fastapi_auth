@@ -50,3 +50,13 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
+
+class TwoFASetupResponse(BaseModel):
+    qr_code: str  # data URI
+    secret: str
+
+class TwoFAEnableRequest(BaseModel):
+    code: str
+
+class TwoFADisableRequest(BaseModel):
+    code: str
