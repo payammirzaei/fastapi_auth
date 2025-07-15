@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     email_from: str
     email_from_name: str
     frontend_url: str
+    app_name: str
 
     model_config = SettingsConfigDict(env_file=".env")
 

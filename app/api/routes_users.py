@@ -18,9 +18,10 @@ import qrcode
 import io
 import base64
 from app.api.schemas import TwoFASetupResponse, TwoFAEnableRequest, TwoFADisableRequest
-
+from app.core.config import settings
 router = APIRouter(prefix="/users", tags=["users"])
-
+global appname
+appname=settings.app_name
 
 @router.get("/me", response_model=UserOut)
 async def read_current_user(current_user: User = Depends(get_current_user)):
@@ -96,7 +97,7 @@ async def setup_2fa(current_user: User = Depends(get_current_user), session: Asy
     # Generate a new TOTP secret
     secret = pyotp.random_base32()
     # Generate QR code for authenticator apps
-    otp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name="FastAPIAuthApp")
+    otp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name=appname)
     qr = qrcode.make(otp_uri)
     buf = io.BytesIO()
     qr.save(buf, format="PNG")

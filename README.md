@@ -72,7 +72,8 @@ POSTGRES_PASSWORD=yourpassword
 POSTGRES_DB=yourdb
 POSTGRES_SERVER=localhost
 POSTGRES_PORT=5432
-
+# APP Name
+APP_NAME=MAGIC
 # JWT
 JWT_SECRET=your-very-secret-key
 
