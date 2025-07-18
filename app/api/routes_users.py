@@ -41,7 +41,8 @@ async def read_current_user(current_user: User = Depends(get_current_user)):
         fname=current_user.fname,
         lname=current_user.lname,
         phone=phone,
-        is_active=current_user.is_active
+        is_active=current_user.is_active,
+        is_2fa_enabled=current_user.is_2fa_enabled
     )
 
 

@@ -19,6 +19,7 @@ class UserOut(BaseModel):
     lname:str
     phone:PhoneNumber
     is_active: bool
+    is_2fa_enabled:bool
 
     class Config:
         orm_mode = True
@@ -39,6 +40,7 @@ class UserUpdate(BaseModel):
     lname: str | None = None
     phone: PhoneNumber | None = None
     email: EmailStr | None = None
+    is_2fa_enabled:bool | None = None
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
