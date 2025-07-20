@@ -90,3 +90,5 @@ Thumbs.db
 # requirements
 requirements.txt
 !requirements.txt 
+
+RunCommand.txt
