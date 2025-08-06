@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a robust, production-ready authentication and user management system built with FastAPI, SQLAlchemy, and modern Python security best practices. It is designed to be a solid foundation for any web or API project requiring secure user authentication, email verification, password recovery, and more.
+This project is a robust, production-ready authentication and user management system built with FastAPI, SQLAlchemy, and modern Python security best practices. It is designed to provide a solid foundation for any web or API project that requires secure user authentication, email verification, password recovery, and more.
 
 ---
 
