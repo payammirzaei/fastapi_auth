@@ -8,9 +8,9 @@ This project is a robust, production-ready authentication and user management sy
 
 ## Features
 
-- **User Registration** with email verification
-- **JWT Authentication** (access & refresh tokens)
-- **Refresh Token Rotation** and revocation
+- **User Registration** with email verification.
+- **JWT Authentication** (access & refresh tokens).
+- **Refresh Token Rotation** and revocation.
 - **Secure Password Hashing** (bcrypt)
 - **Password Recovery** (forgot/reset password via email)
 - **Change Password**
